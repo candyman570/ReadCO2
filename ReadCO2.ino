@@ -17,7 +17,7 @@ V1.0 initial release 2018-02-09
 #include <SoftwareSerial.h>
 
 #include <FastLED.h>
-#define LED_PIN     2
+#define LED_PIN     2       // led Strip Data Signal: Arduino Pin D2
 #define NUM_LEDS 32         // length of LED strip.
 #define BRIGHTNESS  64      // 0..255
 #define LED_TYPE    WS2811  // LED chip type
@@ -25,7 +25,7 @@ V1.0 initial release 2018-02-09
 
 // define globals
 CRGB leds[NUM_LEDS]; // Define the array of leds
-SoftwareSerial mySerial(10, 11); // RX, TX 
+SoftwareSerial mySerial(10, 11); // Arduino Pin D10: RX, D11: TX 
 
 void setup() {
   Serial.begin(9600); // open serial port (USB) for optional data transmission to PC
@@ -53,7 +53,7 @@ void loop() {
       receivebuf[9-count] = mySerial.read();
       count--;
     }
-    else timeout--;
+    else timeout--;,
   }
 
   if(!(receivebuf[8]-getCheckSum(receivebuf))){ // checksum ok?
