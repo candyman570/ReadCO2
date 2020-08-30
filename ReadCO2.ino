@@ -35,7 +35,7 @@ void setup() {
 }
 
 void loop() {
-  char readbyte[9] = { 0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79}; // bytes for querying CO2 sensor
+  unsigned char readbyte[9] = { 0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79}; // bytes for querying CO2 sensor
 
   while(mySerial.available()) mySerial.read(); // clear buffer before starting communication
 
@@ -51,17 +51,17 @@ void loop() {
   while(timeout&&count){
     if (mySerial.available()) {
       receivebuf[9-count] = mySerial.read();
+      //Serial.print(receivebuf[9-count],HEX);
+      //Serial.print(" ");
       count--;
     }
-    else timeout--;,
+    else timeout--;
   }
 
   if(!(receivebuf[8]-getCheckSum(receivebuf))){ // checksum ok?
     ppm=receivebuf[2]*256+receivebuf[3];
     Serial.println(ppm,DEC);
-    index=ppm/100;
-    fill_gradient_RGB(leds,0, CRGB::Green,NUM_LEDS-1, CRGB::Red); // prepare colors from green to red on led strip 
-    fill_solid(leds+index, NUM_LEDS-index, CRGB::Black);          // keep only leds up to  current value. Remove leds above.
+    ledOut(1,ppm); // output to LED stripe.
   }
   else {
     Serial.println("Data ERROR");
@@ -69,12 +69,12 @@ void loop() {
     leds[0]=CRGB::DarkRed;  // one red Led as error indicator
   }
   FastLED.show();   // send prepared led strip pattern to the physical led strip
-  delay(1000);      // update rate 
+  delay(1000);      // update rate 1 second
 }
 
 unsigned char getCheckSum(unsigned char *packet)
 {
-  char i, checksum;
+  unsigned char i, checksum=0;
   for( i = 1; i < 8; i++)
   {
     checksum += packet[i];
@@ -82,4 +82,31 @@ unsigned char getCheckSum(unsigned char *packet)
   checksum = 0xff-checksum;
   checksum += 1;
   return checksum;
+}
+
+void ledOut(unsigned char type, uint16_t ppm){
+    uint8_t index;
+    switch(type){
+      case 0: // color gradient, 3200ppm max
+        index=ppm/100;
+        fill_gradient_RGB(leds,0, CRGB::Green,NUM_LEDS-1, CRGB::Red); // prepare colors from green to red on led strip 
+        fill_solid(leds+index, NUM_LEDS-index, CRGB::Black);          // keep only leds up to  current value. Remove leds above.
+      break;
+      case 1: // 4 colors, 1600ppm max
+        index=ppm/50;
+        fill_solid(leds,8,CRGB::Green);
+        fill_solid(leds+8,8,0x705000);
+        fill_solid(leds+16,8,0xF04000);
+        fill_solid(leds+24,8,CRGB::Red);
+        fill_solid(leds+index, NUM_LEDS-index, CRGB::Black);          // keep only leds up to  current value. Remove leds above.
+      break;
+      case 2: // 4 colors in incrasing brightness, 1600ppm max
+        index=ppm/50;
+        fill_gradient_RGB(leds,0,0x000800,7, CRGB::Green);
+        fill_gradient_RGB(leds,8,0x100900,15, 0x705000);
+        fill_gradient_RGB(leds,16,0x0F0400,23, 0xF04000);
+        fill_gradient_RGB(leds,24,0x0F0000,31, CRGB::Red);
+        fill_solid(leds+index, NUM_LEDS-index, CRGB::Black);          // keep only leds up to  current value. Remove leds above.
+      break;
+    }
 }
