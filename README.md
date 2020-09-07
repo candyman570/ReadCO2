@@ -1,5 +1,6 @@
-# ReadCO2
+This CO2 traffic light should help to improve the quality of indoor air by reminding you to ventilate
 
+# CO2 Corona Traffic Light
 <p align="center">
   <img src="/pic/CO2-Meter_500ppm.jpg" width="200" title="500ppm CO2">
   <img src="/pic/CO2-Meter_1600ppm.jpg" width="200" title="full scale 1600ppm">
@@ -27,3 +28,5 @@ Connections
 </p>
 Actually used model Atmega 328P with Mini-USB connector.
 It should work with most other Arduinos too.
+
+<hl/>
