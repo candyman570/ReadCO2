@@ -6,19 +6,20 @@
 </p>
 
 ## MH-Z19B
-
+https://cdn-reichelt.de/documents/datenblatt/X200/MH-Z19B_DB_EN.pdf <br>
 Connections
-* GND
-* +5V
-* RX -> D11
-* TX -> D10
-https://cdn-reichelt.de/documents/datenblatt/X200/MH-Z19B_DB_EN.pdf
+* GND  -> Arduino GND
+* +5V  -> Arduino GND
+* RX -> Arduino D11
+* TX -> Arduino D10 
+
 
 ## WS2811 LED Strip
+https://cdn-shop.adafruit.com/datasheets/WS2811.pdf <br>
 Connections
-* GND
-* +5V
-* D_in -> D2
+* GND  -> Arduino GND
+* +5V  -> Arduino +5V
+* D_in -> Arduino D2
 
 ## Arduino Nano
 Actually used model Atmega 328P with Mini-USB connector.
