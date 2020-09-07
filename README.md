@@ -22,5 +22,8 @@ Connections
 * D_in -> Arduino D2
 
 ## Arduino Nano
+<p align="center">
+  <img src="/pic/IMG_20200907_174627.jpg" width="640" title="Arduino Nano">
+</p>
 Actually used model Atmega 328P with Mini-USB connector.
 It should work with most other Arduinos too.
