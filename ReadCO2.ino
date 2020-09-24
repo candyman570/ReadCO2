@@ -19,9 +19,13 @@ V1.0 initial release 2018-02-09
 #include <FastLED.h>
 #define LED_PIN     2       // led Strip Data Signal: Arduino Pin D2
 #define NUM_LEDS 32         // length of LED strip.
-#define BRIGHTNESS  64      // 0..255
+#define MIN_BRIGHTNESS  5       // 0..255 maximum allowed brightness
+#define MAX_BRIGHTNESS  64      // 0..255 maximum allowed brightness
+#define USE_LIGHT_SENSOR 0    // enable light sensor measurement otherwise the MAX_BRIGHTNESS will be used
 #define LED_TYPE    WS2811  // LED chip type
 #define COLOR_ORDER GRB
+#define ANIMATION 0 // Set to 1 to animate LEDs while Sensor is starting up 
+
 
 // define globals
 CRGB leds[NUM_LEDS]; // Define the array of leds
@@ -31,12 +35,15 @@ void setup() {
   Serial.begin(9600); // open serial port (USB) for optional data transmission to PC
   mySerial.begin(9600); // open serial port for sensor readout (software-uart)
   FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS); // create FastLED instance
-  FastLED.setBrightness(  BRIGHTNESS );
+  FastLED.setBrightness(MAX_BRIGHTNESS);
+  if(ANIMATION) ledAnimation(); 
 }
 
 void loop() {
   unsigned char readbyte[9] = { 0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79}; // bytes for querying CO2 sensor
-
+  uint32_t bright;
+  if(USE_LIGHT_SENSOR) bright=readLightingLevel()*(MAX_BRIGHTNESS-MIN_BRIGHTNESS)/1024+MIN_BRIGHTNESS; else bright=MAX_BRIGHTNESS;
+  FastLED.setBrightness(bright);
   while(mySerial.available()) mySerial.read(); // clear buffer before starting communication
 
   for (int i=0;i<9;i++){
@@ -109,4 +116,45 @@ void ledOut(unsigned char type, uint16_t ppm){
         fill_solid(leds+index, NUM_LEDS-index, CRGB::Black);          // keep only leds up to  current value. Remove leds above.
       break;
     }
+}
+void ledAnimation(){
+  fill_solid(leds,32,CRGB::Green);
+  dimup();
+  delay(500);
+  dimdown();
+  fill_solid(leds,32,0x705000);
+  dimup();
+  delay(500);
+  dimdown();
+  fill_solid(leds,32,0xF04000);
+  dimup();
+  delay(500);
+  dimdown();  
+  fill_solid(leds,32,CRGB::Red);
+  dimup();
+  delay(500);
+  dimdown();
+  FastLED.setBrightness(MAX_BRIGHTNESS);
+}
+
+void dimdown(){
+  for (uint8_t i=MAX_BRIGHTNESS;i>0;i--){
+      FastLED.setBrightness(i );
+      FastLED.show();
+      delay(20);
+  }  
+}
+
+void dimup(){
+  for (uint8_t i=0; i<=MAX_BRIGHTNESS;i++){
+      FastLED.setBrightness(i );
+      FastLED.show();
+      delay(20);
+  }  
+}
+int readLightingLevel(){
+  uint16_t bright=1024-analogRead(A7);
+  //Serial.print("Lighting: ");
+  //Serial.println(bright);
+  return (bright); 
 }
