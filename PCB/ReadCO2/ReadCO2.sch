@@ -183,7 +183,7 @@ Text GLabel 1250 1650 2    50   Input ~ 0
 CO2RX_uCTX
 Text GLabel 1250 1550 2    50   Input ~ 0
 CO2TX_uCRX
-Text GLabel 6900 2800 2    50   Input ~ 0
+Text GLabel 6900 3500 2    50   Input ~ 0
 light_sense
 Text GLabel 5900 2400 0    50   Input ~ 0
 LED_DIn
