@@ -19,12 +19,17 @@ V1.0 initial release 2018-02-09
 #include <FastLED.h>
 #define LED_PIN     2       // led Strip Data Signal: Arduino Pin D2
 #define NUM_LEDS 32         // length of LED strip.
-#define MIN_BRIGHTNESS  5       // 0..255 maximum allowed brightness
-#define MAX_BRIGHTNESS  64      // 0..255 maximum allowed brightness
-#define USE_LIGHT_SENSOR 0    // enable light sensor measurement otherwise the MAX_BRIGHTNESS will be used
+#define MIN_BRIGHTNESS  2   // 0..255 minimum allowed brightness
+#define MAX_BRIGHTNESS  255  // 0..255 maximum allowed brightness
+#define DEFAULT_BRIGHTNESS 64 // 0..255 brightness if no LIGHT_SENSOR is used
+#define USE_LIGHT_SENSOR 1  // enable light sensor measurement otherwise the MAX_BRIGHTNESS will be used
+#define INTEG_COEFF 0.2    // light sensor integration factor (high values=fast)
+#define LIGHT_K 1          // light sensor slope K   y=kx+d 
+#define LIGHT_D -60        // light sensor offset D
 #define LED_TYPE    WS2811  // LED chip type
 #define COLOR_ORDER GRB
 #define ANIMATION 0 // Set to 1 to animate LEDs while Sensor is starting up 
+double light;
 
 
 // define globals
@@ -32,6 +37,7 @@ CRGB leds[NUM_LEDS]; // Define the array of leds
 SoftwareSerial mySerial(10, 11); // Arduino Pin D10: RX, D11: TX 
 
 void setup() {
+  light=analogRead(A7); // initial value of lightness
   Serial.begin(9600); // open serial port (USB) for optional data transmission to PC
   mySerial.begin(9600); // open serial port for sensor readout (software-uart)
   FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS); // create FastLED instance
@@ -42,7 +48,7 @@ void setup() {
 void loop() {
   unsigned char readbyte[9] = { 0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79}; // bytes for querying CO2 sensor
   uint32_t bright;
-  if(USE_LIGHT_SENSOR) bright=readLightingLevel()*(MAX_BRIGHTNESS-MIN_BRIGHTNESS)/1024+MIN_BRIGHTNESS; else bright=MAX_BRIGHTNESS;
+  if(USE_LIGHT_SENSOR) bright=readLightingLevel(); else bright=MAX_BRIGHTNESS;
   FastLED.setBrightness(bright);
   while(mySerial.available()) mySerial.read(); // clear buffer before starting communication
 
@@ -67,7 +73,10 @@ void loop() {
 
   if(!(receivebuf[8]-getCheckSum(receivebuf))){ // checksum ok?
     ppm=receivebuf[2]*256+receivebuf[3];
-    Serial.println(ppm,DEC);
+    Serial.print("CO2-ppm: ");
+    Serial.print(ppm,DEC);
+    Serial.print(" Brightness: ");
+    Serial.println(bright);
     ledOut(1,ppm); // output to LED stripe.
   }
   else {
@@ -153,8 +162,11 @@ void dimup(){
   }  
 }
 int readLightingLevel(){
-  uint16_t bright=1024-analogRead(A7);
-  //Serial.print("Lighting: ");
-  //Serial.println(bright);
-  return (bright); 
+  int readLight=analogRead(A7);
+  int retval;
+  light=light+INTEG_COEFF*(readLight-light); // update global variable (integrator)
+  retval=(1-light/1024)*255*LIGHT_K+LIGHT_D; // adjust co-domain
+  if(retval<MIN_BRIGHTNESS)retval=MIN_BRIGHTNESS; // Limiter
+  if(retval>MAX_BRIGHTNESS)retval=MAX_BRIGHTNESS;
+  return (retval); 
 }
