@@ -19,7 +19,7 @@ V1.0 initial release 2018-02-09
 #include <FastLED.h>
 #define LED_PIN     2       // led Strip Data Signal: Arduino Pin D2
 #define NUM_LEDS 32         // length of LED strip.
-#define MIN_BRIGHTNESS  2   // 0..255 minimum allowed brightness
+#define MIN_BRIGHTNESS  5   // 5..255 minimum allowed brightness values lower than 5 can produce wrong color outputs
 #define MAX_BRIGHTNESS  255  // 0..255 maximum allowed brightness
 #define DEFAULT_BRIGHTNESS 64 // 0..255 brightness if no LIGHT_SENSOR is used
 #define USE_LIGHT_SENSOR 1  // enable light sensor measurement otherwise the MAX_BRIGHTNESS will be used
@@ -48,7 +48,7 @@ void setup() {
 void loop() {
   unsigned char readbyte[9] = { 0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79}; // bytes for querying CO2 sensor
   uint32_t bright;
-  if(USE_LIGHT_SENSOR) bright=readLightingLevel(); else bright=MAX_BRIGHTNESS;
+  if(USE_LIGHT_SENSOR) bright=readLightingLevel(); else bright=DEFAULT_BRIGHTNESS;
   FastLED.setBrightness(bright);
   while(mySerial.available()) mySerial.read(); // clear buffer before starting communication
 
